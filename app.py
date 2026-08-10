@@ -21,34 +21,44 @@ st.caption("Paste a public Instagram Reel link to summarize content, ask custom 
 with st.sidebar:
     st.header("⚙️ Configuration")
     
-    # Secure API Key Handling (Secrets -> Env -> Manual Input)
-    default_key = ""
+    # Secure API Key Access (Check Secrets -> Env -> Manual Password Input)
+    detected_key = ""
     try:
         if "GEMINI_API_KEY" in st.secrets:
-            default_key = st.secrets["GEMINI_API_KEY"]
+            detected_key = st.secrets["GEMINI_API_KEY"]
     except Exception:
         pass
 
-    if not default_key and os.getenv("GEMINI_API_KEY"):
-        default_key = os.getenv("GEMINI_API_KEY")
-        
-    api_key_input = st.text_input(
-        "Gemini API Key",
-        value=default_key,
-        type="password",
-        help="Reads from secrets/env or enter manually here."
-    )
-    
+    if not detected_key and os.getenv("GEMINI_API_KEY"):
+        detected_key = os.getenv("GEMINI_API_KEY")
+
+    if detected_key:
+        st.success("✅ GEMINI_API_KEY detected from system settings")
+        user_key = st.text_input(
+            "Override API Key (Optional)",
+            value="",
+            type="password",
+            help="Leave blank to use system key, or enter a custom key here."
+        )
+        api_key = user_key.strip() if user_key.strip() else detected_key
+    else:
+        api_key_input = st.text_input(
+            "Gemini API Key",
+            value="",
+            type="password",
+            placeholder="Paste your Gemini API key here...",
+            help="Enter your Gemini API key securely."
+        )
+        api_key = api_key_input.strip()
+
     st.divider()
     st.markdown("""
-    ### 📌 Tips
-    - **Default Mode**: Concise summary for quick reading.
-    - **Links**: Spoken or visual links are extracted automatically.
-    - **Downloads**: Download the Reel video directly as `.mp4`.
+    ### 📌 Features
+    - **⚡ Concise Mode**: Quick overview & key takeaways.
+    - **🔗 Link Extraction**: Auto-extracts spoken/visual URLs & handles.
+    - **⬇️ Reel Download**: Direct video download button (.mp4).
+    - **✨ Custom Prompts**: Ask any custom question about the Reel.
     """)
-
-# Active API Key
-api_key = api_key_input.strip()
 
 # --- HELPER FUNCTIONS ---
 def download_reel(url):
@@ -137,67 +147,13 @@ def analyze_video_with_ai(video_path, prompt, client):
 input_container = st.container(border=True)
 
 with input_container:
-    col_url, col_paste, col_btn = st.columns([3.2, 1.1, 1.2], vertical_alignment="bottom")
+    col_url, col_btn = st.columns([4, 1], vertical_alignment="bottom")
     
     with col_url:
         reel_url = st.text_input(
             "Instagram Reel URL:",
             placeholder="https://www.instagram.com/reel/...",
             label_visibility="visible"
-        )
-        
-    with col_paste:
-        st.html(
-            """
-            <div style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; margin-top: 4px;">
-                <button id="paste-btn" style="
-                    background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
-                    color: white;
-                    border: none;
-                    padding: 9px 14px;
-                    border-radius: 8px;
-                    font-weight: 600;
-                    cursor: pointer;
-                    font-size: 14px;
-                    width: 100%;
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    gap: 6px;
-                    transition: all 0.2s ease;
-                ">
-                    📋 Paste Link
-                </button>
-            </div>
-            <script>
-            document.getElementById('paste-btn').addEventListener('click', async () => {
-                try {
-                    const text = await navigator.clipboard.readText();
-                    if (text) {
-                        const inputs = document.querySelectorAll('input[type="text"]');
-                        let targetInput = null;
-                        inputs.forEach(input => {
-                            if (input.placeholder && input.placeholder.includes('instagram.com')) {
-                                targetInput = input;
-                            }
-                        });
-                        if (!targetInput && inputs.length > 0) {
-                            targetInput = inputs[0];
-                        }
-                        if (targetInput) {
-                            targetInput.focus();
-                            const nativeSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
-                            nativeSetter.call(targetInput, text);
-                            targetInput.dispatchEvent(new Event('input', { bubbles: true }));
-                            targetInput.dispatchEvent(new Event('change', { bubbles: true }));
-                        }
-                    }
-                } catch (err) {
-                    alert('Clipboard access denied or restricted by browser. Please allow clipboard permissions or paste manually (Ctrl+V / Cmd+V).');
-                }
-            });
-            </script>
-            """
         )
         
     with col_btn:
