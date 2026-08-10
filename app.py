@@ -147,7 +147,7 @@ with input_container:
         )
         
     with col_paste:
-        st.components.v1.html(
+        st.html(
             """
             <div style="font-family: sans-serif; display: flex; justify-content: center; align-items: center; margin-top: 4px;">
                 <button id="paste-btn" style="
@@ -174,7 +174,7 @@ with input_container:
                 try {
                     const text = await navigator.clipboard.readText();
                     if (text) {
-                        const inputs = window.parent.document.querySelectorAll('input[type="text"]');
+                        const inputs = document.querySelectorAll('input[type="text"]');
                         let targetInput = null;
                         inputs.forEach(input => {
                             if (input.placeholder && input.placeholder.includes('instagram.com')) {
@@ -197,8 +197,7 @@ with input_container:
                 }
             });
             </script>
-            """,
-            height=45
+            """
         )
         
     with col_btn:
