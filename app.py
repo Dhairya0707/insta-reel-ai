@@ -59,6 +59,7 @@ def analyze_video_with_ai(video_path, client):
         "3. AUDIO: Summarize spoken words or dialogue accurately.\n"
         "4. CORE POINT: What is the ultimate takeaway?\n"
         "Be specific. Avoid vague summaries."
+        "if anything it include like links or anything if possible then also attach it with your answser"
     )
     
     response = client.models.generate_content(
